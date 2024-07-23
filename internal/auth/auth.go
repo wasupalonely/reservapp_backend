@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -8,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/wasupalonely/reservapp/config"
 	"github.com/wasupalonely/reservapp/internal/user"
+	"github.com/wasupalonely/reservapp/internal/validation"
 )
 
 func generateToken(userID uint) (string, error) {
@@ -20,19 +22,15 @@ func generateToken(userID uint) (string, error) {
 }
 
 func LoginHandler(c *gin.Context) {
-	var loginData struct {
-		Username string `json:"username"`
-		Password string `json:"password"`
-	}
-
+	var loginData validation.LoginData
 	if err := c.ShouldBindJSON(&loginData); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	u, err := user.GetUserByUsername(loginData.Username)
+	u, err := user.GetByIdentifier(loginData.Identifier)
 	if err != nil || !user.CheckPasswordHash(loginData.Password, u.Password) {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid username or password"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid identifier or password"})
 		return
 	}
 
@@ -46,12 +44,7 @@ func LoginHandler(c *gin.Context) {
 }
 
 func RegisterHandler(c *gin.Context) {
-	var registrationData struct {
-		Username string `json:"username"`
-		Password string `json:"password"`
-		Email    string `json:"email"`
-	}
-
+	var registrationData validation.RegistrationData
 	if err := c.ShouldBindJSON(&registrationData); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -70,6 +63,7 @@ func RegisterHandler(c *gin.Context) {
 	}
 
 	if err := user.CreateUser(&newUser); err != nil {
+		fmt.Println(err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not create user"})
 		return
 	}
