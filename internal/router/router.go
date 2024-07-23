@@ -17,17 +17,41 @@ func SetupRouter() *gin.Engine {
 		authGroup := api.Group("/")
 		authGroup.Use(auth.AuthMiddleware())
 		{
-			authGroup.GET("/categories", booking.GetCategoriesHandler)
-			authGroup.POST("/categories", booking.CreateCategoryHandler)
-			authGroup.GET("/locations", booking.GetLocationsHandler)
-			authGroup.POST("/locations", booking.CreateLocationHandler)
-			authGroup.GET("/spaces", booking.GetSpacesHandler)
-			authGroup.POST("/spaces", booking.CreateSpaceHandler)
-			authGroup.GET("/events", booking.GetEventsHandler)
-			authGroup.POST("/events", booking.CreateEventHandler)
-			authGroup.GET("/event_times/:event_id", booking.GetEventTimesHandler)
-			authGroup.POST("/event_times", booking.CreateEventTimeHandler)
-			authGroup.POST("/reservations", booking.CreateReservationHandler)
+			categoriesGroup := authGroup.Group("/categories")
+			{
+				categoriesGroup.GET("/", booking.GetCategoriesHandler)
+				categoriesGroup.POST("/", booking.CreateCategoryHandler)
+			}
+
+			locationsGroup := authGroup.Group("/locations")
+			{
+				locationsGroup.GET("/", booking.GetLocationsHandler)
+				locationsGroup.POST("/", booking.CreateLocationHandler)
+			}
+
+			spacesGroup := authGroup.Group("/spaces")
+			{
+				spacesGroup.GET("/", booking.GetSpacesHandler)
+				spacesGroup.POST("/", booking.CreateSpaceHandler)
+			}
+
+			eventsGroup := authGroup.Group("/events")
+			{
+				eventsGroup.GET("/", booking.GetEventsHandler)
+				eventsGroup.POST("/", booking.CreateEventHandler)
+			}
+
+			reservationsGroup := authGroup.Group("/reservations")
+			{
+				reservationsGroup.POST("/", booking.CreateReservationHandler)
+
+			}
+			eventTimesGroup := authGroup.Group("/event_times")
+			{
+				eventTimesGroup.GET("/:event_id", booking.GetEventTimesHandler)
+				eventTimesGroup.POST("/", booking.CreateEventTimeHandler)
+			}
+
 		}
 	}
 
